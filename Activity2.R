@@ -35,23 +35,35 @@ datW$dateF <- as.Date(datW$DATE, "%Y-%m-%d")
 #and indicating that it should be treated as numeric data
 datW$year <- as.numeric(format(datW$dateF,"%Y"))
 
-#find all unique site names
+#find out all the unique site names
 levels(datW$NAME)
 
-#find mean maximum temperature for Aberdeen
-mean(datW$TMAX[datW$NAME == "ABERDEEN, WA US"])
-
+#find the mean maximum temperature for Aberdeen
+#the na.rm function is used to ignore NA values in calculations
 mean(datW$TMAX[datW$NAME == "ABERDEEN, WA US"], na.rm=TRUE)
 
+#calculate the average daily temperature 
+#this value lies halfway between the minimum and maximum temperatures
 datW$TAVE <- datW$TMIN + ((datW$TMAX-datW$TMIN)/2)
 
+#use aggregate function to improve efficiency of calculations, get mean across all sites
+#the by function is a list of one or more variables to index over
+#FUN indicates the function we want to use
 averageTemp <- aggregate(datW$TAVE, by=list(datW$NAME), FUN="mean",na.rm=TRUE)
 averageTemp
 
-datW$TAVE <- datW$TMIN + ((datW$TMAX-datW$TMIN)/2)
+#change the column names of output to indicate name and Mean Annual Air Temperature (MAAT)
+colnames(averageTemp) <- c("NAME","MAAT")
+averageTemp
 
-datW$siteN <- as.numeric(as.factor(datW$NAME))
+#convert the factors to their unerlying numbers
+datW$siteN <- as.numeric(datW$NAME)
 
+#generates 4 graphs in same window
+par(mfrow=c(2,2))
+
+#make a histogram for the data for Aberdeen, WA
+#use paste function to name histogram as actual factor name instead of numeric index
 hist(datW$TAVE[datW$siteN == 1],
      freq=FALSE, 
      main = paste(levels(datW$NAME)[1]),
@@ -60,18 +72,12 @@ hist(datW$TAVE[datW$siteN == 1],
      col="grey50",
      border="white")
 
-h1 <- hist(datW$TAVE[datW$siteN == 1],
-           freq=FALSE, 
-           main = paste(levels(datW$NAME)[1]),
-           xlab = "Average daily temperature (degrees C)", 
-           ylab="Relative frequency",
-           col="grey50",
-           border="white")
-
+#add red mean line with thickness of 3 to histogram
 abline(v = mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE), 
        col = "tomato3",
        lwd = 3)
 
+#add dashed red standard deviation lines with a thickness of 3 above and below mean
 abline(v = mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE) - sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE), 
        col = "tomato3", 
        lty = 3,
@@ -82,14 +88,107 @@ abline(v = mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE) + sd(datW$TAVE[datW$siteN
        lty = 3,
        lwd = 3)
 
+#make a histogram for the data for Mandan Experiment Station, ND
+#use paste function to name histogram as actual factor name instead of numeric index
+hist(datW$TAVE[datW$siteN == 3],
+     freq=FALSE, 
+     main = paste(levels(datW$NAME)[3]),
+     xlab = "Average daily temperature (degrees C)", 
+     ylab="Relative frequency",
+     col="lightskyblue1",
+     border="white")
+
+#add red mean line with thickness of 3 to histogram
+abline(v = mean(datW$TAVE[datW$siteN == 3],na.rm=TRUE), 
+       col = "tomato3",
+       lwd = 3)
+
+#add dashed red standard deviation lines with a thickness of 3 above and below mean
+abline(v = mean(datW$TAVE[datW$siteN == 3],na.rm=TRUE) - sd(datW$TAVE[datW$siteN == 3],na.rm=TRUE), 
+       col = "tomato3", 
+       lty = 3,
+       lwd = 3)
+
+abline(v = mean(datW$TAVE[datW$siteN == 3],na.rm=TRUE) + sd(datW$TAVE[datW$siteN == 3],na.rm=TRUE), 
+       col = "tomato3", 
+       lty = 3,
+       lwd = 3)
+
+#make a histogram for the data for Livermore, CA
+#use paste function to name histogram as actual factor name instead of numeric index
+hist(datW$TAVE[datW$siteN == 2],
+     freq=FALSE, 
+     main = paste(levels(datW$NAME)[2]),
+     xlab = "Average daily temperature (degrees C)", 
+     ylab="Relative frequency",
+     col="olivedrab1",
+     border="white")
+
+#add red mean line with thickness of 3 to histogram
+abline(v = mean(datW$TAVE[datW$siteN == 2],na.rm=TRUE), 
+       col = "tomato3",
+       lwd = 3)
+
+#add dashed red standard deviation lines with a thickness of 3 above and below mean
+abline(v = mean(datW$TAVE[datW$siteN == 2],na.rm=TRUE) - sd(datW$TAVE[datW$siteN == 2],na.rm=TRUE), 
+       col = "tomato3", 
+       lty = 3,
+       lwd = 3)
+
+abline(v = mean(datW$TAVE[datW$siteN == 2],na.rm=TRUE) + sd(datW$TAVE[datW$siteN == 2],na.rm=TRUE), 
+       col = "tomato3", 
+       lty = 3,
+       lwd = 3)
+
+#make a histogram for the data for Mormon Flat, AZ
+#use paste function to name histogram as actual factor name instead of numeric index
+hist(datW$TAVE[datW$siteN == 4],
+     freq=FALSE, 
+     main = paste(levels(datW$NAME)[4]),
+     xlab = "Average daily temperature (degrees C)", 
+     ylab="Relative frequency",
+     col="plum1",
+     border="white")
+
+#add red mean line with thickness of 3 to histogram
+abline(v = mean(datW$TAVE[datW$siteN == 4],na.rm=TRUE), 
+       col = "tomato3",
+       lwd = 3)
+
+#add dashed red standard deviation lines with a thickness of 3 above and below mean
+abline(v = mean(datW$TAVE[datW$siteN == 4],na.rm=TRUE) - sd(datW$TAVE[datW$siteN == 4],na.rm=TRUE), 
+       col = "tomato3", 
+       lty = 3,
+       lwd = 3)
+
+abline(v = mean(datW$TAVE[datW$siteN == 4],na.rm=TRUE) + sd(datW$TAVE[datW$siteN == 4],na.rm=TRUE), 
+       col = "tomato3", 
+       lty = 3,
+       lwd = 3)
+
+#name Aberdeen histogram "h1" for reference when generating probability distributions
+h1 <- hist(datW$TAVE[datW$siteN == 1],
+     freq=FALSE, 
+     main = paste(levels(datW$NAME)[1]),
+     xlab = "Average daily temperature (degrees C)", 
+     ylab="Relative frequency",
+     col="grey50",
+     border="white")
+
+#use seq function to generate set of numbers used to plot a normal probability distribution
 x.plot <- seq(-10,30, length.out = 100)
 
+#use dnorm function produce the probability density based on a mean and standard deviation
 y.plot <-  dnorm(seq(-10,30, length.out = 100),
                  mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE),
                  sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE))
 
+#change scaling of density to fit plot
+#means that the two data sets always have the same maximum value
 y.scaled <- (max(h1$density)/max(y.plot)) * y.plot
 
+#use points function to add line showing the normal distribution using mean 
+#and standard deviation calculated from the data
 points(x.plot,
        y.scaled, 
        type = "l", 
@@ -97,6 +196,30 @@ points(x.plot,
        lwd = 4, 
        lty = 2)
 
+#use pnorm fuction to calculate probability of having a value less than or equal to a specified value
+#calculate probability of below freezing temperatures
 pnorm(0,
+      mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE),
+      sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE))
+
+#to calculate probability of having values between 0° and 5° we calculate the probability of having values less than or equal to 5 and subtract the probability of having val 
+#for 5 and subract pnorm for 0
+pnorm(5,
+      mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE),
+      sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE)) - pnorm(0,
+      mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE),
+      sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE))
+
+#to find the probability of high temperatures we can calculate the pnorm for 20 and subtract it from 1
+#since pnorm of 20 giveds the probability for data less than or equal to 20, subtracting from 1 would
+#give the probability o
+1 - pnorm(20,
+      mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE),
+      sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE))
+
+#qnorm calculates a value for a given probability
+#qnorm for a given decimal value will give the data poin at that probability
+#calculate the threshold for the top 5% of temperatures or the high extreme
+qnorm(0.95,
       mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE),
       sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE))
