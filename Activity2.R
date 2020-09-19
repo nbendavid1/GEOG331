@@ -223,3 +223,40 @@ pnorm(5,
 qnorm(0.95,
       mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE),
       sd(datW$TAVE[datW$siteN == 1],na.rm=TRUE))
+
+#climate change temp increase (Question 6)
+#calculate the current mean temperature in Aberdeen
+aberdeen.mean <- mean(datW$TAVE[datW$siteN == 1], na.rm=TRUE)
+#add the 4°C caused by climate change
+aberdeen.mean.new <- aberdeen.mean + 4
+
+#calculate the standard deviation for Aberdeen
+aberdeen.sd <- sd(datW$TAVE[datW$siteN == 1], na.rm=TRUE)
+
+#use 1-pnorm to find amount of values above given threshold
+1 - pnorm(18.51026,
+          aberdeen.mean.new,
+          aberdeen.sd)
+
+#find annual precip (Question 8)
+#group precipitation data by year and name then use sum function to calculate annual precipitation
+annualPrecip <- aggregate(datW$PRCP, by=list(datW$year, datW$siteN), FUN="sum", na.rm=TRUE)
+
+#create histogram for annual precipitation at site 2
+hist(annualPrecip$x[annualPrecip$Group.2 == 2],
+     freq=FALSE, 
+     main = paste(levels(datW$NAME)[2]),
+     xlab = "Annual Precipitation", 
+     ylab = "Relative frequency",
+     col = "grey50",
+     border = "white",)
+
+#compare average temperatures and annual precipitation (Question 9)
+#find average temperatures for all sites
+averageTemp <- aggregate(datW$TAVE, by=list(datW$NAME), FUN="mean",na.rm=TRUE)
+averageTemp
+
+#find mean annual precipitation for all sites
+averagePrecip <- aggregate(datW$PRCP, by=list(datW$NAME), FUN="mean",na.rm=TRUE)
+averagePrecip
+
