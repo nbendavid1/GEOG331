@@ -24,7 +24,7 @@ Mat.bycol[1,2]
 #load noaa data set
 datW <- read.csv("/Users/nadav/Desktop/R_datasets/GEOG331_EDS/noaa_weather/2011124.csv")
 
-#get more information about the dataframe
+#get more information about the dataframe (Question 1)
 str(datW)
 
 #specify a column with a proper date format
@@ -63,7 +63,7 @@ datW$siteN <- as.numeric(datW$NAME)
 par(mfrow=c(2,2))
 
 #make a histogram for the data for Aberdeen, WA
-#use paste function to name histogram as actual factor name instead of numeric index
+#use paste function to name histogram as actual factor name instead of numeric index (Question 3)
 hist(datW$TAVE[datW$siteN == 1],
      freq=FALSE, 
      main = paste(levels(datW$NAME)[1]),
@@ -88,6 +88,7 @@ abline(v = mean(datW$TAVE[datW$siteN == 1],na.rm=TRUE) + sd(datW$TAVE[datW$siteN
        lty = 3,
        lwd = 3)
 
+#make histograms for other sites (Question $)
 #make a histogram for the data for Mandan Experiment Station, ND
 #use paste function to name histogram as actual factor name instead of numeric index
 hist(datW$TAVE[datW$siteN == 3],
