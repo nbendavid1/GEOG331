@@ -1,3 +1,7 @@
+# # # Davi Bendavid
+# # # 9/30/2020
+# # # GEOG331 Activity 3
+
 #set function to evaluate truth of statement
 assert <- function(statement,err.message){
   if(statement == FALSE){
@@ -123,7 +127,8 @@ plot(datW$DD, datW$wind.speedQ1, xlab="Day of Year", ylab="Wind Speed",
 #add points
 points(datW$DD[datW$wind.speedQ1 > 0], datW$wind.speedQ1[datW$wind.speedQ1 > 0], col="dark magenta", pch=19)
 
-# # # QUESTION 7
+# # # QUESTION 7:
+#generate plots for soil moisture, soil temp, precip, and air temp for month of July
 #display four plots at once
 par(mfrow=c(2,2))
 
@@ -159,6 +164,7 @@ summaryTable$timePeriodDD <- max(datW$DD, na.rm = TRUE)
 str(summaryTable)
 
 # # # QUESTION 9:
+#generate plots for soil moisture, soil temp, precip, and air temp for whole dataset
 #display four plots at once
 par(mfrow=c(2,2))
 
