@@ -1,0 +1,56 @@
+---
+title: "Activity 5"
+author: "Davi Bendavid"
+date: "10/14/2020"
+output: 
+  html_document:
+    theme: readable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(lubridate)
+```
+***
+
+#### Question 1
+I would expect precipitation, temperature, and time of year to all significantly influence streamflow. I would expect amounts of flow higher than typical in the spring, as temperatures begin to rise and ice and snow begin to melt. Snow and ice on land would melt and flow into the stream through runoff and groundwater. Additionally, chunks of ice that may have formed in the stream itself over the long and cold upstate New York winter would melt, increasing the amount of streamflow. 
+
+
+
+#### Question 2
+To calculate decimal year, first you divide the day by the total number of days in a year, resulting in a decimal value. This value is added onto the year, giving the decimal year. To account for loop year, we use the ifelse function. This function divides the day by 365 days if it is not a leap year and 366 days if it is a leap year. The leap_year function is a logical fuction that tests whether or not a given year is a leap year. The results of the leap_year function will say TRUE or FALSE. For example, 2007 was not a leap year and will return FALSE, but 2008 was a leap year and will return TRUE:
+```{r}
+leap_year(2007)
+leap_year(2008)
+```
+The leap_year function is used as the first argument in the ifelse function, and decides whether the day will be divided by 365 or 366.  
+
+
+
+#### Question 3
+```{r}
+length(datD$discharge)
+length(datP$HPCP)
+```
+There are 393798 observations in the streamflow data and 16150 observations in the precipitation data. Streamflow is measured every 15 minutes and precipitation is measured every hour.  
+
+
+
+#### Question 4
+The expression() fuction returns unevaluated arguments for whatever is placed inside the fuction. In this case, we are using paste() to put the plot labels as the arguments for expression(). This method results in labels that do not resize as the plot is made bigger and smaller. This is especially problematic when the plot is made small, as the labels force the plot itself to be so small that the data and axes are not readable.  
+
+
+
+#### Question 6
+Based on the plot from question 5, the 2017 mean seems to generally follow the overall mean, however there are massive spikes in the data at several points. These would likely be due to major weather events, and would be considered outliers. The same can be said for the general trends in standard deviation and mean. There are very drastic spikes in standard deviation at several points. Median and quartiles are much less effected by extreme outliers, so they might be a better fit for this type of data.  
+
+
+
+### Question 8
+I chose January 12, 2011 to make my second hydrograph. I chose this because it is one of the days with a full 24 hours of precipitation. As with the first hydrograph, discharge does spike around spikes in hourly precipitation. Only having hourly precipitation does create limitations, because we cannot observes the spikes and fluctuations in as much detail as we can with the discharge data. This makes it harder to see the correlations between the two. Even though there is not rain in the winter, snow is probably melting into the stream, adding volume. I noticed that there seems to be a greater lag between spikes and precipitation and spikes in discharge than in the non-winter plot. This could be because when snow hits the ground, it takes time to melt due to the heat capacity of the ground itself, or added sources of heat such as animals, people, and vehicles. Then the melted snow makes its way into the stream causing a spike in discharge, but slightly on a delay.  
+
+
+
+### Question 9
+For both the 2016 and the 2017 data, spring has the highest amount of discharge. This makes sense, as snow and ice melt in the spring will contribute a lot of water to the stream. For both years, summer is also the lowest discharge. This also makes sense, as higher temperatures lead to increased evaporation. This increased evaporation both directly removes from the stream and prevents freshly fallen rain from ending up in the stream because it is evaporated more quickly. The data from 2016 appears to have more variation. There are quite a few extreme outliers, likely as a result of large storms bringing massive amounts of precipitation.
