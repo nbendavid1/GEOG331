@@ -2,7 +2,8 @@
 title: "Activity 5"
 author: "Davi Bendavid"
 date: "10/14/2020"
-output: 
+output:
+  pdf_document: default
   html_document:
     theme: readable
 ---
@@ -29,10 +30,6 @@ The leap_year function is used as the first argument in the ifelse function, and
 
 
 #### Question 3
-```{r}
-length(datD$discharge)
-length(datP$HPCP)
-```
 There are 393798 observations in the streamflow data and 16150 observations in the precipitation data. Streamflow is measured every 15 minutes and precipitation is measured every hour.  
 
 
@@ -53,4 +50,8 @@ I chose January 12, 2011 to make my second hydrograph. I chose this because it i
 
 
 ### Question 9
-For both the 2016 and the 2017 data, spring has the highest amount of discharge. This makes sense, as snow and ice melt in the spring will contribute a lot of water to the stream. For both years, summer is also the lowest discharge. This also makes sense, as higher temperatures lead to increased evaporation. This increased evaporation both directly removes from the stream and prevents freshly fallen rain from ending up in the stream because it is evaporated more quickly. The data from 2016 appears to have more variation. There are quite a few extreme outliers, likely as a result of large storms bringing massive amounts of precipitation.
+For both the 2016 and the 2017 data, spring has the highest amount of discharge. This makes sense, as snow and ice melt in the spring will contribute a lot of water to the stream. For both years, summer is also the lowest discharge. This also makes sense, as higher temperatures lead to increased evaporation. This increased evaporation both directly removes from the stream and prevents freshly fallen rain from ending up in the stream because it is evaporated more quickly. The data from 2016 appears to have more variation. There are quite a few extreme outliers, likely as a result of large storms bringing massive amounts of precipitation.  
+
+
+### Question 10
+https://github.com/nbendavid1016/GEOG331/blob/master/Activity5.R

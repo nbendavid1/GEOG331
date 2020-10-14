@@ -43,6 +43,10 @@ datP$decDay <- datP$doy + (datP$hour/24)
 datP$decYear <- ifelse(leap_year(datP$year),datP$year + (datP$decDay/366),
                        datP$year + (datP$decDay/365))
 
+## Question 3:
+length(datD$discharge)  #tells us the amount of entries in each set
+length(datP$HPCP)
+
 #Question 5:
 #plot discharge
 plot(datD$decYear, datD$discharge, type="l", xlab="Year", ylab=expression(paste("Discharge ft"^"3 ","sec"^"-1")))
