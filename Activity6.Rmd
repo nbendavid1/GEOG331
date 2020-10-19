@@ -1,0 +1,16 @@
+---
+title: "Activity 6"
+author: "Davi Bendavid"
+date: "10/19/2020"
+output: html_document
+theme: readable
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+***
+
+#### Question 1
+The projection is the Universal Transverse Mercator coordinate system and the datum is the North American Datum from 1983. The zone refers to the zone number used by the UTM coordinate system.
