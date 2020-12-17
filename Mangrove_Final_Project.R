@@ -250,7 +250,7 @@ NAvalue(chng00_12) <- 0
 lossClumps <- clump(chng00_12,
                     filename='lossClumps.tif',
                     directions=8)
-## lossClumps <- raster('lossClumps.tif)
+## lossClumps <- raster('lossClumps.tif')
 
 #pull the data for these clumps using freq - output is a matrix
 lossFreq <- freq(lossClumps)
@@ -266,7 +266,7 @@ tail(lossFreq)
 
 #the last row tells us how many pixels were NA - we want to remove this 
 lossFreq <- lossFreq[-nrow(lossFreq),]
-## lossFreq <- read.csv(lossFreq.csv)
+## lossFreq <- read.csv('lossFreq.csv')
 
 #what is the size in pixels of the largest clump?
 max(lossFreq$count)
@@ -290,3 +290,38 @@ top6fun <- function(x) { x[x %notin% top6ID] <- NA; return(x) }
 top6Loss <- calc(lossClumps,
                  fun = top6fun,
                  filename = "top6loss.tif")
+
+
+
+#we need to crop this layer down so we can export the hotspots as polygons
+#use this for loop to figure out which countries have any of the 6 hotspots
+for (i in wAf_ISO3) {
+  tryCatch({
+  country <- getData(name='GADM',country=i,level=0)
+  ex <- extent(country)
+  countrycrop <- crop(top6Loss,ex)
+  countryfreq <- freq(countrycrop,)
+  countryfreq <- as.data.frame(countryfreq)
+  ifelse(length(countryfreq$value) > 1, print(paste0(i," has hotspots")), print(paste0(i," doesn't have hotspots")))
+  rm(country,ex,countrycrop,countryfreq)
+  }, error=function(e){})
+}
+
+#now we can go look more closely at each country that has hotspots
+#first assign the ISO3 code for the country to 'country'
+country <- "GAB"
+country <- getData(name='GADM',country=country,level=0)
+ex <- extent(country)
+countrycrop <- crop(top6Loss,ex)
+#plot then draw an extent
+#crop the plot to that extent then use freq to see if the hotspot is within the extent
+plot(countrycrop)
+e <- drawExtent()
+cropped <- crop(countrycrop,e)
+freq(cropped)
+#if yes, convert the cropped raster to polygon layer and export as shapefile
+#load shapefiles into Google Earth
+
+countryshp <- rasterToPolygons(test,dissolve = TRUE)
+writeOGR(countryshp, dsn = '.', layer = 'countryshp', driver = "ESRI Shapefile")
+
