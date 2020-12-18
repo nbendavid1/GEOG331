@@ -9,7 +9,6 @@
 ##           import the file originally output by that block from a dropbox link.
 
 
-
 ## Section 1: Load necessary libraries
 
 library(raster)
@@ -23,16 +22,6 @@ library(dplyr)
 library(spatialEco)
 library(exactextractr)
 #---------------------------------------------------------------------------------#
-
-
-
-## Section 2: Import Hansen et al. dataset (12 GEOTIFF files, ~5Gb each)
-
-#these files are very large so we will crop them to the extent of the 
-#West African countries we will be looking at
-
-#create a vector of file names
-f <- list.files(pattern = glob2rx("*mfw.tif"))
 
 
 ## Section 2: Import Hansen et al. dataset (12 GEOTIFF files, ~5Gb each)
@@ -205,7 +194,6 @@ nigeria_plot <- ggplot(nigeria, aes(x = Year, y = Extent, group = 1)) +
   ggtitle("Nigeria") +
   theme(plot.title = element_text(hjust = 0.5))
 
-
 #for % loss
 #1 - ghana
 ghana <- data.frame(years, as.numeric(forCountryplots$GHA))
@@ -242,7 +230,6 @@ congoroc_plot <- ggplot(congoroc, aes(x = Year, y = Extent, group = 1)) +
   ylab("Mangrove Forest Cover (km?)") +
   ggtitle("Congo, Republic of") + 
   theme(plot.title = element_text(hjust = 0.5))
-
 
 grid.arrange(arrangeGrob(cameroon_plot,gabon_plot,nigeria_plot,
                          ncol = 3,top = "3 Countries with Highest Loss by Area"),
@@ -313,7 +300,6 @@ top6 <- tail(sort(lossFreq$count),6)
 #we want to make a vector of the IDs for the top 6 clumps
 top6ID <- lossFreq$value[lossFreq$count %in% top6]
 
-
 #if this worked properly the length of top6ID and top6 should be the same
 length(top6ID) == length(top6)
 
@@ -323,7 +309,6 @@ length(top6ID) == length(top6)
 `%notin%` <- function(x,y) !(x %in% y) 
 #write function to assign NA to anything not in the top 6 - we will use this as the funciton for calc
 top6fun <- function(x) { x[x %notin% top6ID] <- NA; return(x) }
-
 
 ## DON'T RUN FROM HERE ...
 #use the function we just wrote with calc
@@ -337,7 +322,6 @@ top6Loss <- calc(lossClumps,
 #we need to crop this layer down so we can export the hotspots as polygons
 #use this for loop to figure out which countries have any of the 6 hotspots
 for (i in wAf_ISO3) {
-  tryCatch({
   country <- getData(name='GADM',country=i,level=0)
   ex <- extent(country)
   countrycrop <- crop(top6Loss,ex)
@@ -345,17 +329,9 @@ for (i in wAf_ISO3) {
   countryfreq <- as.data.frame(countryfreq)
   if(length(countryfreq$value) > 1) { print(paste0(i," has hotspots")) }
   rm(country,ex,countrycrop,countryfreq)
-  }, error=function(e){})
-}
+  }
 ## ... TO HERE - output was:
 ## "GIN has hotspots, GHA has hotspots, CMR has hotspots, GAB has hotspots, AGO has hotspots"
-
-#now we can go look more closely at each country that has hotspots
-#first assign the ISO3 code for the country to 'country'
-country <- "GIN"
-  if(length(countryfreq$value) > 1) { print(paste0(i," has hotspots")) }
-  rm(country,ex,countrycrop,countryfreq)
-}
 
 #now we can go look more closely at each country that has hotspots
 #first assign the ISO3 code for the country to 'country'
@@ -369,7 +345,6 @@ plot(countrycrop)
 e <- drawExtent()
 cropped <- crop(countrycrop,e)
 freq(cropped)
-
 
 #if yes, convert the cropped raster to polygon layer and export as shapefile
 #load shapefiles into Google Earth
