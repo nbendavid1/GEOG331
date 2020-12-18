@@ -2,10 +2,12 @@
 ## GEOG331: Environmental Data Science
 ## Quantifying and investigating mangrove deforestation in West Africa
 
+
 ##   NOTE:   Certain lines of code will take hours and should not be run again.
 ##           These lines will be marked with "DON'T RUN FROM HERE ... TO HERE"
 ##           At the end of each marked-off block is a commented line of code to 
 ##           import the file originally output by that block from a dropbox link.
+
 
 
 ## Section 1: Load necessary libraries
@@ -17,6 +19,7 @@ library(sf)
 library(spatial)
 library(ggplot2)
 library(gridExtra)
+library(dplyr)
 library(spatialEco)
 library(exactextractr)
 #---------------------------------------------------------------------------------#
@@ -30,6 +33,16 @@ library(exactextractr)
 
 #create a vector of file names
 f <- list.files(pattern = glob2rx("*mfw.tif"))
+
+
+## Section 2: Import Hansen et al. dataset (12 GEOTIFF files, ~5Gb each)
+
+#these files are very large so we will crop them to the extent of the 
+#West African countries we will be looking at
+
+#create a vector of file names
+f <- list.files(pattern = glob2rx("*mfw.tif"))
+
 
 #create a vector of output filenames
 fo <- paste("waf", f, sep = "_")
@@ -97,6 +110,7 @@ for (i in wAf_ISO3) {
   colnames(fcabyCountry) <- abcnames
   rm(country,country2,annual_area,annual_area2)
 }
+
 ## ... TO HERE - instead use:
 ## fcbyCountry <- read.csv()
 
@@ -261,6 +275,9 @@ chng00_12 <- raster::overlay(fc2000,fc2012,
 NAvalue(chng00_12) <- 0
 
 ## DON'T RUN FROM HERE ...
+#now we can set NAvalue to 0
+NAvalue(chng00_12) <- 0
+
 #use clump() to indentify clumps
 lossClumps <- clump(chng00_12,
                     filename='lossClumps.tif',
@@ -269,6 +286,8 @@ lossClumps <- clump(chng00_12,
 ## chng00_12 <- raster()
 
 ## DON'T RUN FROM HERE ...
+## lossClumps <- raster('lossClumps.tif')
+
 #pull the data for these clumps using freq - output is a matrix
 lossFreq <- freq(lossClumps)
 
@@ -293,6 +312,8 @@ top6 <- tail(sort(lossFreq$count),6)
 
 #we want to make a vector of the IDs for the top 6 clumps
 top6ID <- lossFreq$value[lossFreq$count %in% top6]
+
+
 #if this worked properly the length of top6ID and top6 should be the same
 length(top6ID) == length(top6)
 
@@ -302,6 +323,7 @@ length(top6ID) == length(top6)
 `%notin%` <- function(x,y) !(x %in% y) 
 #write function to assign NA to anything not in the top 6 - we will use this as the funciton for calc
 top6fun <- function(x) { x[x %notin% top6ID] <- NA; return(x) }
+
 
 ## DON'T RUN FROM HERE ...
 #use the function we just wrote with calc
@@ -331,6 +353,13 @@ for (i in wAf_ISO3) {
 #now we can go look more closely at each country that has hotspots
 #first assign the ISO3 code for the country to 'country'
 country <- "GIN"
+  if(length(countryfreq$value) > 1) { print(paste0(i," has hotspots")) }
+  rm(country,ex,countrycrop,countryfreq)
+}
+
+#now we can go look more closely at each country that has hotspots
+#first assign the ISO3 code for the country to 'country'
+country <- "GAB"
 country <- getData(name='GADM',country=country,level=0)
 ex <- extent(country)
 countrycrop <- crop(top6Loss,ex)
@@ -341,10 +370,16 @@ e <- drawExtent()
 cropped <- crop(countrycrop,e)
 freq(cropped)
 
+
 #if yes, convert the cropped raster to polygon layer and export as shapefile
 #load shapefiles into Google Earth
 countryshp <- rasterToPolygons(test,dissolve = TRUE)
 writeOGR(countryshp, dsn = '.', layer = 'GINhotspots', driver = "ESRI Shapefile")
+#if yes, convert the cropped raster to polygon layer and export as shapefile
+#load shapefiles into Google Earth
+
+countryshp <- rasterToPolygons(test,dissolve = TRUE)
+writeOGR(countryshp, dsn = '.', layer = 'countryshp', driver = "ESRI Shapefile")
 
 #import 4 hotspot shapefiles:
 hotspot1       <- readOGR('GINhotspots.shp')
