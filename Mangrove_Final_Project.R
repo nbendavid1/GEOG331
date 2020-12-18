@@ -105,36 +105,36 @@ fcbyCountry[yearcols] <- fcbyCountry[yearcols]/1000
 #clone dataframe
 fcbyCountry_ch <- fcbyCountry
 #loss calculations
-fcbyCountry_ch$km.chng <- fcbyCountry_ch$Cover.2012 - fcbyCountry_ch$Cover.2000
-fcbyCountry_ch$per.chng <- ((fcbyCountry_ch$Cover.2012 - fcbyCountry_ch$Cover.2000)/fcbyCountry_ch$Cover.2000)*100
+fcbyCountry_ch$km.chng <- fcbyCountry[[as.character(2012)]] - fcbyCountry[[as.character(2000)]]
+fcbyCountry_ch$per.chng <- (fcbyCountry[[as.character(2012)]] - fcbyCountry[[as.character(2000)]])/fcbyCountry[[as.character(2000)]]
 fcbyCountry_ch$km.loss <- abs(fcbyCountry_ch$km.chng)
 fcbyCountry_ch$per.loss <- abs(fcbyCountry_ch$per.chng)
 
 #calculate annual rates of loss for each country and for the region
-#make a new dataframe for this
-annualROL <- data.frame(matrix(ncol = 13, nrow = 17))
-colnames(annualROL) <- c("Country",2001:2012)
-annualROL$Country <- fcbyCountry$Country
+#make a new dataframe for this - copy of fcbyCountry without Country col
+withSum <- fcbyCountry
+withSum$Country = NULL
+#add row for total of all countries
+withSum["sum",]=colSums(withSum)
 #use a for loop to calculate annual rates of loss
 options(scipen=999)
+anROL <- withSum
 yearsNo00 <- (2001:2012)
 for (i in yearsNo00) {
-  annualROL[[as.character(i)]] <- (fcbyCountry[[as.character(i)]] - fcbyCountry[[as.character(i-1)]]) / fcbyCountry[[as.character(i-1)]] * 100
+  anROL[[as.character(i)]] <- (withSum[[as.character(i)]] - withSum[[as.character(i-1)]]) / withSum[[as.character(i-1)]]
 }
+anROL[[as.character(2000)]]=NULL
 
-#find average rate for each country
-annualROL <- transform(annualROL, Ave = rowMeans(annualROL[,2:13], na.rm = TRUE))
-colnames(annualROL) <- c("Country",2001:2012,"Ave")
-
-#find rate average annual ROL for whole region
-avROL <- mean(annualROL$Ave)
+#find average rate for each country and for sum
+anROL <- transform(anROL, Ave = rowMeans(anROL))
+colnames(anROL) <- c(2001:2012,"Ave")
 
 #find total square km lost for whole region
 kmAll <- sum(fcbyCountry_ch$km.loss)
 #and total percent of 2000 cover lost
 total2000 <- sum(fcbyCountry[[as.character(2000)]])
 total2012 <- sum(fcbyCountry[[as.character(2012)]])
-perAll <- abs(((total2012-total2000)/total2000)*100)
+perAll <- abs((total2012-total2000)/total2000)
 
 
 #add column for full country names for plotting
@@ -158,23 +158,24 @@ colnames(forCountryplots) <- fcbyCountry$Country
 
 #libraries
 library(ggplot2)
-library(gridExtra)
 library(gt)
+library(webshot)
 
 #first make a big table for all the countries and the region showing stats about loss
 #first as data frame
 visFrame <- data.frame(matrix(ncol = 4, nrow = 18))
 colnames(visFrame) <- c("country","kmloss","perloss","ROL")
 visFrame$country <- append(countrynames, "All Countries")
-visFrame$kmloss <- format(round(append(fcbyCountry_ch$km.loss,kmAll), 3), nsmall = 3)
-visFrame$perloss <- format(round(append(fcbyCountry_ch$per.loss,perAll), 3), nsmall = 3)
-visFrame$ROL <- format(round(abs(append(annualROL$Ave,avROL)), 4), nsmall = 4)
-colnames(visFrame) <- c("Country","Change in Cover by Area (km²)","Change in Cover by Percent","Average Annual Rate of Loss")
+visFrame$kmloss <- append(fcbyCountry_ch$km.loss,kmAll)
+visFrame$perloss <- append(fcbyCountry_ch$per.loss,perAll)
+visFrame$ROL <- abs(anROL$Ave)
+colnames(visFrame) <- c("Country","Area Lost (km²)","Percent Lost","Annual Average Rate of Loss")
 #make table with gt packge
-visTable <- gt(data = visFrame,rowname_col = 'Country')
-tab_stubhead(visTable,"Country")
-tab_header(visTable,title = "West Africa Change in Mangrove Forest Cover",
-           subtitle = "2000-2012")
+visTable <- gt(data = visFrame,rowname_col = 'Country') %>%
+tab_stubhead("Country") %>%
+fmt_number(columns = "Area Lost (km²)",decimals = 3) %>%
+fmt_percent(columns = c("Percent Lost","Annual Average Rate of Loss"),decimals = 4) %>%
+gtsave(filename = "losstable.png")
 
 #make visualizations for km loss and % loss by country
 #km loss
