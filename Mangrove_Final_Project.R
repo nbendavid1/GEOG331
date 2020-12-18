@@ -65,12 +65,10 @@ for(i in 1:length(f))
 
 #load in cropped rasters
 #first create a vector of filenames
-croppedfiles <- list.files(path="Hamilton_cropped/",pattern = "waf_a.*mfw.tif",full.names=TRUE)
+croppedfiles <- list.files(pattern = "cropped.*.tif",full.names=TRUE)
 
 #load as a raster stack
 croppedstack <- stack(croppedfiles)
-## ... TO HERE - instead use:
-## croppedstack <- raster()
 #---------------------------------------------------------------------------------#
 
 
@@ -82,7 +80,6 @@ fcbyCountry <- data.frame(matrix(ncol = 14, nrow = 0))
 abcnames <- c("Country",2000:2012)
 colnames(areabyCountry) <- abcnames
 
-## DON'T RUN FROM HERE ...
 #summarize forest cover for each year in stack using zonal statistics
 #program this using a for loop
 #annual forest cover 2000-2012 for each country is entered into fcbyCountry data frame
@@ -97,7 +94,7 @@ for (i in wAf_ISO3) {
   rm(country,country2,annual_area,annual_area2)
 }
 ## ... TO HERE - instead use:
-fcbyCountry <- read.csv('fcbyCountry.csv')
+## fcbyCountry <- read.csv('fcbyCountry.csv')  from link https://www.dropbox.com/s/oeyczfyzru6wo5t/fcbyCountry.csv?dl=0
 
 #divide all forest cover values by 1000 to convert m^2 to km^2
 #first make list with names of forest cover columns
@@ -299,7 +296,7 @@ chng00_12 <- raster::overlay(fc2000,fc2012,
                              fun = function(x,y) {return(x-y)},
                              filename='chng00_12.tif')
 ## ... TO HERE - instead use:
-## chng00_12 <- raster()
+## chng00_12 <- raster('chng00_12.tif')  from link https://www.dropbox.com/s/6yewvb0i89hb902/chng00_12.tif?dl=0
 
 #now we can set NAvalue to 0
 NAvalue(chng00_12) <- 0
@@ -313,11 +310,9 @@ lossClumps <- clump(chng00_12,
                     filename='lossClumps.tif',
                     directions=8)
 ## ... TO HERE - instead use:
-## chng00_12 <- raster()
+## chng00_12 <- raster('lossClumps.tif')  from link https://drive.google.com/file/d/1abXxKmrydKxPcNiHhq9FDbf8w7ml9gLG/view?usp=sharing
 
 ## DON'T RUN FROM HERE ...
-## lossClumps <- raster('lossClumps.tif')
-
 #pull the data for these clumps using freq - output is a matrix
 lossFreq <- freq(lossClumps)
 
@@ -333,7 +328,7 @@ tail(lossFreq)
 #the last row tells us how many pixels were NA - we want to remove this 
 lossFreq <- lossFreq[-nrow(lossFreq),]
 ## ... TO HERE - instead use:
-## lossFreq <- read.csv()
+## lossFreq <- read.csv('lossFreq.csv)  from link https://drive.google.com/file/d/1xzzwLJyOn1oUggE5bECTmBoxAUr6Uo6Y/view?usp=sharing
 
 #what is the size in pixels of the largest clump?
 max(lossFreq$count)
@@ -359,7 +354,7 @@ top6Loss <- calc(lossClumps,
                  fun = top6fun,
                  filename = "top6loss.tif")
 ## ... TO HERE - instead use:
-## top6Loss <- raster('top6Loss.tif')
+## top6Loss <- raster('top6Loss.tif')  from link https://drive.google.com/file/d/1Jm6-apkYVJaSnmWI9EL0B3VCY8T3J5Wj/view?usp=sharing
 
 ## DON'T RUN FROM HERE ...
 #we need to crop this layer down so we can export the hotspots as polygons
@@ -399,7 +394,7 @@ writeOGR(countryshp, dsn = '.', layer = 'GINhotspots', driver = "ESRI Shapefile"
 countryshp <- rasterToPolygons(test,dissolve = TRUE)
 writeOGR(countryshp, dsn = '.', layer = 'countryshp', driver = "ESRI Shapefile")
 
-#import 4 hotspot shapefiles:
+#import 4 hotspot shapefiles:   from link https://drive.google.com/drive/folders/1LaniVc4qWjl-NVjh9gyBIUQFe00s4kB1?usp=sharing
 hotspot1       <- readOGR('GINhotspots.shp')
 hotspot2and4   <- readOGR('CMRhotspots')
 hotspot3       <- readOGR('AGOhotspots.shp')
