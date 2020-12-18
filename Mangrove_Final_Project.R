@@ -16,9 +16,6 @@ library(igraph)
 library(rgdal)
 library(sf)
 library(spatial)
-library(ggplot2)
-library(gridExtra)
-library(dplyr)
 library(spatialEco)
 library(exactextractr)
 #---------------------------------------------------------------------------------#
@@ -82,7 +79,7 @@ croppedstack <- stack(croppedfiles)
 #create data frame for output of statistics
 fcbyCountry <- data.frame(matrix(ncol = 14, nrow = 0))
 #set appropriate column names
-abcnames <- c("Country","Cover.2000","Cover.2001","Cover.2002","Cover.2003","Cover.2004","Cover.2005","Cover.2006","Cover.2007","Cover.2008","Cover.2009","Cover.2010","Cover.2011","Cover.2012")
+abcnames <- c("Country",2000:2012)
 colnames(areabyCountry) <- abcnames
 
 ## DON'T RUN FROM HERE ...
@@ -99,13 +96,12 @@ for (i in wAf_ISO3) {
   colnames(fcabyCountry) <- abcnames
   rm(country,country2,annual_area,annual_area2)
 }
-
 ## ... TO HERE - instead use:
-## fcbyCountry <- read.csv()
+fcbyCountry <- read.csv('fcbyCountry.csv')
 
 #divide all forest cover values by 1000 to convert m^2 to km^2
 #first make list with names of forest cover columns
-yearcols <- c("Cover.2000","Cover.2001","Cover.2002","Cover.2003","Cover.2004","Cover.2005","Cover.2006","Cover.2007","Cover.2008","Cover.2009","Cover.2010","Cover.2011","Cover.2012")
+yearcols <- c(as.character(2000:2012))
 fcbyCountry[yearcols] <- fcbyCountry[yearcols]/1000
 
 #next I clone the data frame and add some columns for loss to the clone
@@ -117,19 +113,71 @@ fcbyCountry_ch$per.chng <- ((fcbyCountry_ch$Cover.2012 - fcbyCountry_ch$Cover.20
 fcbyCountry_ch$km.loss <- abs(fcbyCountry_ch$km.chng)
 fcbyCountry_ch$per.loss <- abs(fcbyCountry_ch$per.chng)
 
+#calculate annual rates of loss for each country and for the region
+#make a new dataframe for this
+annualROL <- data.frame(matrix(ncol = 13, nrow = 17))
+colnames(annualROL) <- c("Country",2001:2012)
+annualROL$Country <- fcbyCountry$Country
+#use a for loop to calculate annual rates of loss
+options(scipen=999)
+yearsNo00 <- (2001:2012)
+for (i in yearsNo00) {
+  annualROL[[as.character(i)]] <- (fcbyCountry[[as.character(i)]] - fcbyCountry[[as.character(i-1)]]) / fcbyCountry[[as.character(i-1)]] * 100
+}
+
+#find average rate for each country
+annualROL <- transform(annualROL, Ave = rowMeans(annualROL[,2:13], na.rm = TRUE))
+colnames(annualROL) <- c("Country",2001:2012,"Ave")
+
+#find rate average annual ROL for whole region
+avROL <- mean(annualROL$Ave)
+
+#find total square km lost for whole region
+kmAll <- sum(fcbyCountry_ch$km.loss)
+#and total percent of 2000 cover lost
+total2000 <- sum(fcbyCountry[[as.character(2000)]])
+total2012 <- sum(fcbyCountry[[as.character(2012)]])
+perAll <- abs(((total2012-total2000)/total2000)*100)
+
+
 #add column for full country names for plotting
 #get country names from ISO3 data built into raster package
 countrynames <- getData('ISO3')
 countrynames <- countrynames[match(wAf_ISO3,countrynames$ISO3),]
 countrynames <- countrynames$NAME
 #correct names of Republic of Congo and Democratic Republic of Congo to be shorter
-countrynames[c(15,16)] <- c("Congo, R","Congo, DR")
+countrynamesCongos <- countrynames
+countrynamesCongos[c(15,16)] <- c("Congo, R","Congo, DR")
 #add this to data frame as column
-fcbyCountry_ch$Country.Names <- countrynames
+fcbyCountry_ch$Country.Names <- countrynamesCongos
 
 #rearrange copy of dataframe for easier extraction to make plots by country
 forCountryplots <- data.frame(t(fcbyCountry[-1]))
 colnames(forCountryplots) <- fcbyCountry$Country
+#---------------------------------------------------------------------------------#
+
+
+## Section 4: Visualizations
+
+#libraries
+library(ggplot2)
+library(gridExtra)
+library(gt)
+
+#first make a big table for all the countries and the region showing stats about loss
+#first as data frame
+visFrame <- data.frame(matrix(ncol = 4, nrow = 18))
+colnames(visFrame) <- c("country","kmloss","perloss","ROL")
+visFrame$country <- append(countrynames, "All Countries")
+visFrame$kmloss <- format(round(append(fcbyCountry_ch$km.loss,kmAll), 3), nsmall = 3)
+visFrame$perloss <- format(round(append(fcbyCountry_ch$per.loss,perAll), 3), nsmall = 3)
+visFrame$ROL <- format(round(abs(append(annualROL$Ave,avROL)), 4), nsmall = 4)
+colnames(visFrame) <- c("Country","Change in Cover by Area (km²)","Change in Cover by Percent","Average Annual Rate of Loss")
+#make table with gt packge
+visTable <- gt(data = visFrame,rowname_col = 'Country')
+tab_stubhead(visTable,"Country")
+tab_header(visTable,title = "West Africa Change in Mangrove Forest Cover",
+           subtitle = "2000-2012")
 
 #make visualizations for km loss and % loss by country
 #km loss
@@ -137,7 +185,7 @@ ggplot(fcbyCountry_ch) +
   geom_bar(aes(x=Country.Names,y=km.loss,fill=Country.Names), stat = "identity") +
   coord_flip() +
   theme(legend.position="none") +
-  ylab("Mangrove Deforestation 2000-2012 (km?)") +
+  ylab("Mangrove Deforestation 2000-2012 (km²)") +
   xlab("Country") +
   ggtitle("Deforestation in West Africa by Country (km loss)") +
   theme(plot.title = element_text(hjust = 0.5))
@@ -156,17 +204,16 @@ ggplot(fcbyCountry_ch) +
 #next plot forest cover change over time for the top 3 countries by loss for km loss and % loss
 years <- c(2000:2012)
 
-par(mfrow=c(3,1))
 #for km loss
 #1 - cameroon
 cameroon <- data.frame(years, as.numeric(forCountryplots$CMR))
 colnames(cameroon) <- c("Year","Extent")
 
-cameroon_plot <- ggplot(cameroon, aes(x = Year, y = Extent, group = 1)) +
+ggplot(cameroon, aes(x = Year, y = Extent, group = 1)) +
   geom_point() +
   geom_line() +
   scale_x_continuous(breaks=c(2000:2012)) +
-  ylab("Mangrove Forest Cover (km?)") +
+  ylab("Mangrove Forest Cover (km²)") +
   ggtitle("Cameroon") +
   theme(plot.title = element_text(hjust = 0.5))
 
@@ -174,11 +221,11 @@ cameroon_plot <- ggplot(cameroon, aes(x = Year, y = Extent, group = 1)) +
 gabon <- data.frame(years, as.numeric(forCountryplots$GAB))
 colnames(gabon) <- c("Year","Extent")
 
-gabon_plot <- ggplot(gabon, aes(x = Year, y = Extent, group = 1)) +
+ggplot(gabon, aes(x = Year, y = Extent, group = 1)) +
   geom_point() +
   geom_line() +
   scale_x_continuous(breaks=c(2000:2012)) +
-  ylab("Mangrove Forest Cover (km?)") +
+  ylab("Mangrove Forest Cover (km²)") +
   ggtitle("Gabon") +
   theme(plot.title = element_text(hjust = 0.5))
 
@@ -186,11 +233,11 @@ gabon_plot <- ggplot(gabon, aes(x = Year, y = Extent, group = 1)) +
 nigeria <- data.frame(years, as.numeric(forCountryplots$NGA))
 colnames(nigeria) <- c("Year","Extent")
 
-nigeria_plot <- ggplot(nigeria, aes(x = Year, y = Extent, group = 1)) +
+ggplot(nigeria, aes(x = Year, y = Extent, group = 1)) +
   geom_point() +
   geom_line() +
   scale_x_continuous(breaks=c(2000:2012)) +
-  ylab("Mangrove Forest Cover (km?)") +
+  ylab("Mangrove Forest Cover (km²)") +
   ggtitle("Nigeria") +
   theme(plot.title = element_text(hjust = 0.5))
 
@@ -199,11 +246,11 @@ nigeria_plot <- ggplot(nigeria, aes(x = Year, y = Extent, group = 1)) +
 ghana <- data.frame(years, as.numeric(forCountryplots$GHA))
 colnames(ghana) <- c("Year","Extent")
 
-ghana_plot <- ggplot(ghana, aes(x = Year, y = Extent, group = 1)) +
+ggplot(ghana, aes(x = Year, y = Extent, group = 1)) +
   geom_point() +
   geom_line() +
   scale_x_continuous(breaks=c(2000:2012)) +
-  ylab("Mangrove Forest Cover (km?)") +
+  ylab("Mangrove Forest Cover (km²)") +
   ggtitle("Ghana") +
   theme(plot.title = element_text(hjust = 0.5))
 
@@ -211,30 +258,26 @@ ghana_plot <- ggplot(ghana, aes(x = Year, y = Extent, group = 1)) +
 cote_divoire <- data.frame(years, as.numeric(forCountryplots$CIV))
 colnames(cote_divoire) <- c("Year","Extent")
 
-cote_divoire_plot <- ggplot(cote_divoire, aes(x = Year, y = Extent, group = 1)) +
+ggplot(cote_divoire, aes(x = Year, y = Extent, group = 1)) +
   geom_point() +
   geom_line() +
   scale_x_continuous(breaks=c(2000:2012)) +
-  ylab("Mangrove Forest Cover (km?)") +
-  ggtitle("C?te d'Ivoire") +
+  ylab("Mangrove Forest Cover (km²)") +
+  ggtitle("Côte d'Ivoire") +
   theme(plot.title = element_text(hjust = 0.5))
 
 #3 - congo, roc
 congoroc <- data.frame(years, as.numeric(forCountryplots$COG))
 colnames(congoroc) <- c("Year","Extent")
 
-congoroc_plot <- ggplot(congoroc, aes(x = Year, y = Extent, group = 1)) +
+ggplot(congoroc, aes(x = Year, y = Extent, group = 1)) +
   geom_point() +
   geom_line() +
   scale_x_continuous(breaks=c(2000:2012)) +
-  ylab("Mangrove Forest Cover (km?)") +
+  ylab("Mangrove Forest Cover (km²)") +
   ggtitle("Congo, Republic of") + 
   theme(plot.title = element_text(hjust = 0.5))
 
-grid.arrange(arrangeGrob(cameroon_plot,gabon_plot,nigeria_plot,
-                         ncol = 3,top = "3 Countries with Highest Loss by Area"),
-             arrangeGrob(ghana_plot,cote_divoire_plot,congoroc_plot,
-                         ncol = 3,top = "3 Countries with highest Loss by %"))
 #---------------------------------------------------------------------------------#
 
 
